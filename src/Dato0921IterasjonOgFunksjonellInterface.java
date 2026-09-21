@@ -1,5 +1,7 @@
 import java.util.Iterator;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 public class Dato0921IterasjonOgFunksjonellInterface {
     public static void main(String[] args) {
@@ -21,6 +23,13 @@ public class Dato0921IterasjonOgFunksjonellInterface {
         while (it.hasNext()) {
             String s = it.next();
             System.out.println(s);
+            if (s.equals("går"))
+                break;
+        }
+        // iteratoren `it` er nå avbrutt halvveis i jobben.
+        while (it.hasNext()) {
+            String s = it.next();
+            System.out.println(s);
         }
 
         TabellListeMedIterator<String> tbl = new TabellListeMedIterator<>();
@@ -32,9 +41,33 @@ public class Dato0921IterasjonOgFunksjonellInterface {
         for (String s : tbl)
             System.out.println(s);
 
-        for (Integer i : new AlleNaturligeTall()) {
-            System.out.println(i);
-        }
+        //for (Integer i : new AlleNaturligeTall()) {
+        //    System.out.println(i);
+        //}
+
+        TabellListeMedIterator<Integer> tbli = new TabellListeMedIterator<>();
+        for (int i : new int[] {1, 2, 3, 4, 5, 5, 7, 0})
+            tbli.leggInn(i);
+
+        Iterator<Integer> tblit = tbli.iterator();
+        while (tblit.hasNext()) {
+            Integer k = tblit.next();
+            if (k % 5 == 0)
+                tblit.remove();
+        } // Denne gjør noe galt, finn ut av.
+        System.out.println(tbli);
+
+        tbli.forEach(i -> System.out.println(i));
+        tbli.forEach(System.out::println);
+
+        Consumer<Integer> c = new Oppspiser<>();
+        tbli.forEach(c);
+
+        System.out.println(endrePåFem(i -> 2*i));
+    }
+
+    public static Integer endrePåFem(UnaryOperator<Integer> he) {
+        return he.apply(5);
     }
 }
 
@@ -113,7 +146,12 @@ class TabellListeMedIterator<T> implements Liste<T>, Iterable<T> {
 
     @Override
     public T taUt(int i) {
-        return null;
+        T tmp = tabell[i];
+        for (int j = i+1; j< antall; j++) {
+            tabell[j-1] = tabell[j];
+        }
+        antall--;
+        return tmp;
     }
 
     @Override
@@ -127,6 +165,15 @@ class TabellListeMedIterator<T> implements Liste<T>, Iterable<T> {
 
     @Override
     public boolean taUt(T t) {
+        for (int i = 0; i < tabell.length; i++) {
+            if (tabell[i].equals(t)) {
+                for (int j = i+1; j< antall; j++) {
+                    tabell[j-1] = tabell[j];
+                }
+                antall--;
+                return true;
+            }
+        }
         return false;
     }
 
@@ -161,6 +208,12 @@ class TabellListeMedIterator<T> implements Liste<T>, Iterable<T> {
         public T next() {
             return tabell[i++];
         }
+
+        @Override
+        public void remove() {
+            taUt(i);
+            i--;
+        }
     }
 }
 
@@ -179,5 +232,117 @@ class AlleNaturligeTall implements Iterator<Integer>, Iterable<Integer> {
     @Override
     public Iterator<Integer> iterator() {
         return this;
+    }
+}
+
+class Oppspiser<T> implements Consumer<T> {
+
+    @Override
+    public void accept(T t) {
+        System.out.println(t);
+    }
+}
+
+@FunctionalInterface
+interface HeltallsEndrer {
+    public Integer endre(Integer i);
+}
+class LenketListeMedIterator<T> implements Liste<T>, Iterable<T> {
+
+    @Override
+    public Iterator<T> iterator() {
+        return null;
+    }
+
+    private class LenketListeIterator implements Iterator<T> {
+        Node denne = hode;
+        @Override
+        public boolean hasNext() {
+            return denne != null;
+        }
+
+        @Override
+        public T next() {
+            T tmp = denne.verdi;
+            denne = denne.neste;
+            return tmp;
+        }
+    }
+
+    private class Node {
+        T verdi;
+        Node neste;
+        public Node(T verdi) {
+            this(verdi, null);
+        }
+        public Node(T verdi, Node neste) {
+            this.verdi = verdi;
+            this.neste = neste;
+        }
+    }
+
+    Node hode;
+
+    public LenketListeMedIterator() {
+        hode = null;
+    }
+
+    @Override
+    public boolean leggInn(T t) {
+        hode = new Node(t, hode);
+        return true;
+    }
+    @Override
+    public boolean leggInn(int i, T t) {
+        if (i == 0) {
+            leggInn(t);
+        } else {
+            leggInn(i - 1, hode, t);
+        }
+        return true;
+    }
+
+    private void leggInn(int i, Node n, T t) {
+        if (i == 0) {
+            n.neste = new Node(t, n.neste);
+        } else {
+            leggInn(i-1, n.neste, t);
+        }
+
+    }
+    @Override
+    public boolean inneholder(T t) {
+        return false;
+    }
+
+    @Override
+    public boolean taUt(T t) {
+        return false;
+    }
+
+    @Override
+    public boolean erTom() {
+        return false;
+    }
+
+    @Override
+    public int antall() {
+        return 0;
+    }
+
+
+    @Override
+    public T taUt(int i) {
+        return null;
+    }
+
+    @Override
+    public T oppdater(int i, T t) {
+        return null;
+    }
+
+    @Override
+    public int finn(T t) {
+        return 0;
     }
 }
