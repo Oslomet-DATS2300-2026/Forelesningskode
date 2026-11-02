@@ -15,6 +15,7 @@ public class Dato1026_234TreBonus {
         assert !tre.finn(25) : "25 ligger ikke i treet, burde gi false";
         boolean alleredeDer = tre.leggInn(11);
         assert !alleredeDer : "11 ligger allerede i treet, burde gi false";
+        System.out.println(tre.toString());
     }
 }
 
@@ -63,7 +64,7 @@ class ToTreFireTre <T> {
         public int finnBarn(T verdi) {
             // returnerer første verdi vi er større enn eller lik.
             for (int i = 0; i < antallVerdier; i++) {
-                if (cmp.compare(verdi, verdier[i]) < 0)
+                if (cmp.compare(verdi, verdier[i]) <= 0)
                     return i;
             }
             return antallVerdier;
@@ -109,7 +110,7 @@ class ToTreFireTre <T> {
         // Vet at vi er i en node med mindre enn 3 verdier
         while (!denne.erBlad()) {
             int i = denne.finnBarn(verdi);
-            if (i > 0 && verdi.equals(denne.verdier[i-1]))
+            if (verdi.equals(denne.verdier[i]))
                 // Om relevant barn er på plass i, er verdien som muligens er lik på plass i-1.
                 // Men må sjekke om i > 0, for ellers får vi feilmelding.
                 return false; // Ikke lov med like verdier
@@ -130,7 +131,7 @@ class ToTreFireTre <T> {
         Node denne = rot;
         while (denne != null) {
             int i = denne.finnBarn(verdi);
-            if (i > 0 && verdi.equals(denne.verdier[i-1]))
+            if (verdi.equals(denne.verdier[i]))
                 return true;
             denne = denne.barn[i];
         }
